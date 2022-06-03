@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.core.dao.OrdersDao" >
+    <!--SQL片段  -->
+    <sql id="selectOrdersListWhere">
+        <where>
+	     	<if test="order_id != null">
+	     		and order_id = #{order_id}
+	     	</if>
+	       <if test="cust_id != null" >
+	        and cust_id = #{cust_id}
+	       </if>
+	       <if test="cust_name != null">
+	       	and cust_name like "%"#{cust_name}"%"
+	       </if>
+	       <if test="order_create_id != null" >
+	        and order_create_id = #{order_create_id}
+	       </if>
+	       <if test="order_create_name != null">
+	       	and order_create_name like "%"#{order_create_name}"%"
+	       </if>
+	       <if test="pay_time != null" >
+	        and pay_time = #{pay_time}
+	       </if>
+	       <if test="pay_type != null" >
+	        and pay_type = #{pay_type}
+	       </if>
+	       <if test="expir_time != null" >
+	        and expir_time = #{expir_time}
+	       </if>
+	       <if test="pay_cost != null" >
+	        and pay_cost = #{pay_cost}
+	       </if>
+        </where>
+    </sql>
+	<!-- 查询订单列表  -->
+	<select id="selectOrdersList" parameterType="orders" 
+                                           resultType="orders">
+		SELECT
+			order_id,
+			cust_id,
+			cust_name,
+			order_create_id,
+			order_create_name,
+			pay_time,
+			b.dict_item_name pay_type,
+			expir_time,
+			pay_cost
+		FROM
+			orders a
+		LEFT JOIN (
+			SELECT
+				dict_id,
+				dict_item_name
+			FROM
+				base_dict
+			WHERE
+				dict_type_code = '012'
+		) b ON a.pay_type = b.dict_id
+		
+		<include refid="selectOrdersListWhere"/>
+		<!-- 执行分页查询 -->
+		<if test="start !=null and rows != null">
+			limit #{start},#{rows}
+		</if>
+	</select>
+	<!-- 查询订单总数 -->
+	<select id="selectOrdersListCount" parameterType="orders" 
+                                                 resultType="Integer">
+		select count(*) from orders
+		<include refid="selectOrdersListWhere"/>
+	</select>	
+	
+	<!-- 添加订单 -->
+	<insert id="createOrders" parameterType="orders">
+	    insert into orders(
+	                     cust_id,
+	                     cust_name,
+	                     order_create_id,
+	                     order_create_name,
+	                     pay_time,
+	                     pay_type,
+	                     expir_time,
+	                     pay_cost
+	                     
+	             )
+	             values(#{cust_id},
+	                    #{cust_name},
+	                    #{order_create_id},
+	                    #{order_create_name},
+	                    #{pay_time},
+	                    #{pay_type},
+	                    #{expir_time},
+	                    #{pay_cost}
+	                   
+	            )
+	</insert>
+	<!-- 根据id获取客户信息 -->
+	<select id="getOrdersById" parameterType="Integer" 
+	resultType="orders">
+	    select * from orders where order_id = #{id}
+	</select>
+	<!-- 根据客户id来获取客户姓名 -->
+	<select id="findCustNameById" parameterType="Integer" resultType="String">
+		select cust_name from customer where cust_id = #{cust_id}
+	</select>
+	<!-- 更加创建者id来获取创建者姓名 -->
+	<select id="findOrderCreateNameById" parameterType="Integer" resultType="String">
+		select user_name from sys_user where user_id = #{order_create_id}
+	</select>
+	<!-- 更新客户 -->
+	<update id="updateOrders" parameterType="orders">
+	    update orders
+	    <set>
+	        <if test="cust_id!=null">
+	            cust_id=#{cust_id},
+	        </if>
+	        <if test="cust_name!=null">
+	            cust_name=#{cust_name},
+	        </if>
+	        <if test="order_create_id !=null">
+	            order_create_id=#{order_create_id},
+	        </if>
+	        <if test="order_create_name != null">
+	            order_create_name=#{order_create_name},
+	        </if>
+	        <if test="pay_time !=null">
+	            pay_time=#{pay_time},
+	        </if>
+	        <if test="pay_type!=null">
+	            pay_type=#{pay_type},
+	        </if>
+	        <if test="expir_time != null">
+	            expir_time=#{expir_time},
+	        </if>
+	        <if test="pay_cost">
+	            pay_cost=#{pay_cost},
+	        </if>
+	        
+	    </set>
+	    where order_id=#{order_id}
+	</update>
+	<!-- 删除客户 -->
+	<delete id="deleteOrders" parameterType="Integer">
+	    delete from orders where order_id=#{id}
+	</delete>
+</mapper>

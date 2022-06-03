@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.core.dao.UserDao" >
+    <!-- 查询用户 -->
+    <select id="findUser" parameterType="String" resultType="user">
+    	select *
+    	from sys_user
+    	where user_code = #{usercode}
+    	and user_password = #{password}
+    	and user_state = "37"
+    </select>
+    <!-- SQL片段 -->
+    <sql id="selectUserListWhere">
+    	<where>
+    		<if test="user_level !=null">
+    			user_level = #{user_level}
+    		</if>
+    		<if test="user_code !=null">
+    		and	user_code  = #{user_code}
+    		</if>
+    		<if test="user_name !=null">
+    		and	user_name like "%"#{user_name}"%"
+    		</if>
+    		<if test="user_password !=null">
+    		and	user_password = #{user_password}
+    		</if>
+    		<if test="user_state !=null">
+    		and	user_state = #{user_state}
+    		</if>
+    	</where>
+    </sql>
+    <!-- 查询用户列表 --> 
+    <select id="selectUserList" parameterType="user"
+    					resultType="user">
+    		SELECT
+			user_id,
+			b.dict_item_name user_level,
+			user_code,
+			user_name,
+			user_password,
+			c.dict_item_name user_state,
+			user_createtime
+		FROM
+			sys_user a
+		LEFT JOIN (
+			SELECT
+				dict_id,
+				dict_item_name
+			FROM
+				base_dict
+			WHERE
+				dict_type_code = '010'
+		) b ON a.user_level = b.dict_id
+		LEFT JOIN (
+			SELECT
+				dict_id,
+				dict_item_name
+			FROM
+				base_dict
+			WHERE
+				dict_type_code = '011'
+		) c ON a.user_state = c.dict_id
+		<include refid="selectUserListWhere"/>
+		<!-- 执行分页查询 -->
+		<if test="start !=null and rows != null">
+			limit #{start},#{rows}
+		</if>
+	</select>
+	<!-- 查询客户总数 -->
+	<select id="selectUserListCount" parameterType="user" 
+                                                 resultType="Integer">
+		select count(*) from sys_user
+		<include refid="selectUserListWhere"/>
+	</select>				
+    <!-- 添加客户 -->
+	<insert id="createUser" parameterType="user">
+	    insert into sys_user(
+	                     user_level,
+	                     user_code,
+	                     user_name,
+	                     user_password,
+	                     user_state,
+	                     user_createtime
+	             )
+	             values(#{user_level},
+	                    #{user_code},
+	                    #{user_name},
+	                    #{user_password},
+	                    #{user_state},
+	                    #{user_createtime}
+	            )
+	</insert>
+	<!-- 根据id获取用户信息 -->
+	<select id="getUserById" parameterType="Integer" 
+	resultType="user">
+	    select * from sys_user where user_id = #{id}
+	</select>
+	<!-- 更新客户 -->
+	<update id="updateUser" parameterType="user">
+	    update sys_user
+	    <set>
+	    	<if test="user_level!=null">
+	            user_level=#{user_level},
+	        </if>
+	        <if test="user_code!=null">
+	            user_code=#{user_code},
+	        </if>
+	        <if test="user_name!=null">
+	            user_name=#{user_name},
+	        </if>
+	        <if test="user_password!=null">
+	            user_password=#{user_password},
+	        </if>
+	        <if test="user_state!=null">
+	            user_state=#{user_state},
+	        </if>
+	        <if test="user_createtime!=null">
+	            user_createtime=#{user_createtime},
+	        </if>
+	    </set>
+	    where user_id=#{user_id}
+	</update>
+	<!-- 删除客户 -->
+	<delete id="deleteUser" parameterType="Integer">
+	    delete from sys_user where user_id=#{id}
+	</delete>
+</mapper>
